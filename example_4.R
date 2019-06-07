@@ -2,11 +2,11 @@
 #
 # Works under Windows
 library(pirouette)
-library(ggplot2)
-library(ggtree)
+suppressMessages(library(ggplot2))
+suppressMessages(library(ggtree))
 library(beautier)
 
-root_folder <- path.expand("~/GitHubs/pirouette_article")
+root_folder <- getwd()
 example_no <- 4
 example_folder <- file.path(root_folder, paste0("example_", example_no))
 dir.create(example_folder, showWarnings = FALSE, recursive = TRUE)
