@@ -7,26 +7,6 @@
 
 # Set the RNG seed
 rng_seed <- 314
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 1) {
-  arg <- suppressWarnings(as.numeric(args[1]))
-  if (is.na(arg)) {
-    stop(
-      "Please supply a numerical value for the RNG seed. \n",
-      "Actual value: ", args[1]
-    )
-  }
-  rng_seed <- arg
-  if (rng_seed < 1) {
-    stop("Please supply an RNG seed with a positive non-zero value")
-  }
-}
-if (length(args) > 1) {
-  stop(
-    "Please supply only 1 argument for the RNG seed. \n",
-    "Number of arguments given: ", length(args) - 1
-  )
-}
 
 library(pirouette)
 suppressMessages(library(ggplot2))
@@ -44,6 +24,10 @@ phylogeny  <- ape::read.tree(
 )
 
 alignment_params <- create_alignment_params(
+  sim_true_alignment_fun = get_sim_true_alignment_with_std_site_model_fun(
+    mutation_rate = 0.1,
+    site_model = beautier::create_jc69_site_model()
+  ),
   root_sequence = create_blocked_dna(length = 1000),
   rng_seed = rng_seed
 )
@@ -68,8 +52,6 @@ pir_params <- create_pir_params(
   experiments = experiments
 )
 
-# Make Peregrine friendly
-pir_params <- peregrine::to_pff_pir_params(pir_params)
 rm_pir_param_files(pir_params)
 
 errors <- pir_run(
@@ -77,21 +59,11 @@ errors <- pir_run(
   pir_params = pir_params
 )
 
-if (1 == 2) {
-  errors <- utils::read.csv(
-    file = file.path(example_folder, "errors.csv")
-  )
-  check_pir_out(errors)
-
-  pir_plot(errors)
-}
-
 utils::write.csv(
   x = errors,
   file = file.path(example_folder, "errors.csv"),
   row.names = FALSE
 )
-
 
 pir_plot(errors) +
   ggsave(file.path(example_folder, "errors.png"))
