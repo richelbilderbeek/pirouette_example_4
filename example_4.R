@@ -5,8 +5,6 @@
 #
 #
 
-# Set the RNG seed
-rng_seed <- 314
 
 library(pirouette)
 suppressMessages(library(ggplot2))
@@ -14,6 +12,7 @@ library(beautier)
 
 root_folder <- getwd()
 example_no <- 4
+rng_seed <- 314
 example_folder <- file.path(root_folder, paste0("example_", example_no, "_", rng_seed))
 dir.create(example_folder, showWarnings = FALSE, recursive = TRUE)
 setwd(example_folder)
@@ -28,10 +27,17 @@ alignment_params <- create_alignment_params(
     mutation_rate = 0.1
   ),
   root_sequence = create_blocked_dna(length = 1000),
-  rng_seed = rng_seed
+  rng_seed = rng_seed,
+  fasta_filename = "true_alignment.fas"
 )
 
 experiment <- create_gen_experiment()
+experiment$beast2_options$input_filename <- "true_alignment_gen.xml"
+experiment$beast2_options$output_state_filename <- "true_alignment_gen.xml.state"
+experiment$inference_model$mcmc$tracelog$filename <- "true_alignment_gen.log"
+experiment$inference_model$mcmc$treelog$filename <- "true_alignment_gen.trees"
+experiment$inference_model$mcmc$screenlog$filename <- "true_alignment_gen.csv"
+experiment$errors_filename <- "true_errors_gen.csv"
 experiments <- list(experiment)
 
 # Set the RNG seed
