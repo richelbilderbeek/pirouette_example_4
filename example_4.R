@@ -2,58 +2,27 @@ library(pirouette)
 suppressMessages(library(ggplot2))
 library(beautier)
 
-root_folder <- getwd()
+################################################################################
+# Constants
+################################################################################
+is_testing <- is_on_travis()
 example_no <- 4
 rng_seed <- 314
-example_folder <- file.path(root_folder, paste0("example_", example_no, "_", rng_seed))
-dir.create(example_folder, showWarnings = FALSE, recursive = TRUE)
-setwd(example_folder)
-set.seed(rng_seed)
-testit::assert(is_beast2_installed())
+folder_name <- paste0("example_", example_no, "_", rng_seed)
+
 phylogeny  <- ape::read.tree(
   text = "(((A:8, B:8):1, C:9):1, ((D:8, E:8):1, F:9):1);"
 )
 
-alignment_params <- create_alignment_params(
-  sim_tral_fun = get_sim_tral_with_std_nsm_fun(
-    mutation_rate = 0.1
-  ),
-  root_sequence = create_blocked_dna(length = 1000),
-  rng_seed = rng_seed,
-  fasta_filename = "true_alignment.fas"
-)
-
-experiment <- create_gen_experiment()
-experiment$beast2_options$input_filename <- "true_alignment_gen.xml"
-experiment$beast2_options$output_state_filename <- "true_alignment_gen.xml.state"
-experiment$inference_model$mcmc$tracelog$filename <- "true_alignment_gen.log"
-experiment$inference_model$mcmc$treelog$filename <- "true_alignment_gen.trees"
-experiment$inference_model$mcmc$screenlog$filename <- "true_alignment_gen.csv"
-experiment$errors_filename <- "true_errors_gen.csv"
-experiments <- list(experiment)
-
-# Set the RNG seed
-for (i in seq_along(experiments)) {
-  experiments[[i]]$beast2_options$rng_seed <- rng_seed
-}
+pir_params <- create_std_pir_params(folder_name = folder_name)
+pir_params$twinning_params <- NA
+# Keep only generative, keep candidates
+pir_params$experiments <- pir_params$experiments[1]
 
 # Shorter on Travis
-if (is_on_travis()) {
-  for (i in seq_along(experiments)) {
-    experiments[[i]]$inference_model$mcmc$chain_length <- 3000
-    experiments[[i]]$inference_model$mcmc$store_every <- 1000
-    #experiments[[i]]$est_evidence_mcmc$chain_length <- 3000
-    #experiments[[i]]$est_evidence_mcmc$store_every <- 1000
-    #experiments[[i]]$est_evidence_mcmc$epsilon <- 100.0
-  }
+if (is_testing) {
+  pir_params <- shorten_pir_params(pir_params)
 }
-
-pir_params <- create_pir_params(
-  alignment_params = alignment_params,
-  experiments = experiments
-)
-
-rm_pir_param_files(pir_params)
 
 errors <- pir_run(
   phylogeny,
