@@ -3,8 +3,8 @@
 # * phylogeny: fictional
 # * pirouette setup: no candidates
 #
-# Other examples can be found 
-# at https://github.com/richelbilderbeek/pirouette_examples 
+# Other examples can be found
+# at https://github.com/richelbilderbeek/pirouette_examples
 #
 library(pirouette)
 library(beautier)
@@ -25,6 +25,7 @@ pir_params <- create_std_pir_params(folder_name = folder_name)
 pir_params$twinning_params <- NA
 # Keep only generative, keep candidates
 pir_params$experiments <- pir_params$experiments[1]
+pir_params$evidence_filename <- NA
 if (is_testing) {
   pir_params <- shorten_pir_params(pir_params)
 }
